@@ -1,0 +1,13 @@
+#about {
+    background-color: #cce7ff;
+    padding: 100px 20px;
+    text-align: center;
+  }
+  
+  #about img {
+    max-width: 100%;
+    height: auto;
+    margin-top: 20px;
+    border-radius: 10px;
+  }
+  
