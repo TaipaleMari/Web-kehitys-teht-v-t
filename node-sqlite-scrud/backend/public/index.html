@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRUD-operaatiot</title>
+</head>
+<body>
+    <h1>Käyttäjien hallinta</h1>
+
+    <h2>Luo käyttäjä</h2>
+    <form id="createUserForm">
+        <input type="text" id="name" placeholder="Nimi" required>
+        <input type="email" id="email" placeholder="Sähköposti" required>
+        <input type="number" id="age" placeholder="Ikä" required>
+        <button type="submit">Luo käyttäjä</button>
+    </form>
+
+    <h2>Käyttäjät</h2>
+    <ul id="userList"></ul>
+
+    <h2>Päivitä käyttäjä</h2>
+    <form id="updateUserForm">
+        <input type="number" id="updateId" placeholder="ID" required>
+        <input type="text" id="updateName" placeholder="Nimi">
+        <input type="email" id="updateEmail" placeholder="Sähköposti">
+        <input type="number" id="updateAge" placeholder="Ikä">
+        <button type="submit">Päivitä käyttäjä</button>
+    </form>
+
+    <h2>Poista käyttäjä</h2>
+    <form id="deleteUserForm">
+        <input type="number" id="deleteId" placeholder="ID" required>
+        <button type="submit">Poista käyttäjä</button>
+    </form>
+
+    <script>
+        // Luodaan uusi käyttäjä
+        document.getElementById('createUserForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const age = document.getElementById('age').value;
+
+            fetch('/users', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ name, email, age })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    alert('Käyttäjä luotu!');
+                    loadUsers();
+                }
+            });
+        });
+
+        // Ladataan kaikki käyttäjät
+        function loadUsers() {
+            fetch('/users')
+                .then(response => response.json())
+                .then(data => {
+                    const userList = document.getElementById('userList');
+                    userList.innerHTML = '';
+                    data.forEach(user => {
+                        const li = document.createElement('li');
+                        li.textContent = `ID: ${user.id}, Nimi: ${user.name}, Sähköposti: ${user.email}, Ikä: ${user.age}`;
+                        userList.appendChild(li);
+                    });
+                });
+        }
+
+        // Päivitetään käyttäjä
+        document.getElementById('updateUserForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const id = document.getElementById('updateId').value;
+            const name = document.getElementById('updateName').value;
+            const email = document.getElementById('updateEmail').value;
+            const age = document.getElementById('updateAge').value;
+
+            fetch(`/users/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ name, email, age })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    alert('Käyttäjä päivitetty!');
+                    loadUsers();
+                }
+            });
+        });
+
+        // Poistetaan käyttäjä
+        document.getElementById('deleteUserForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const id = document.getElementById('deleteId').value;
+
+            fetch(`/users/${id}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    alert('Käyttäjä poistettu!');
+                    loadUsers();
+                }
+            });
+        });
+
+        // Ladataan käyttäjät sivun latautuessa
+        window.onload = loadUsers;
+    </script>
+</body>
+</html>

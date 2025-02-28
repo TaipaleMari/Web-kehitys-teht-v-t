@@ -1,11 +1,15 @@
 const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
+const path = require('path'); // Lisää path-moduuli
 
 const app = express();
 const port = 3000;
 
 // Käytetään JSON-middlewarea POST-datan käsittelyyn
 app.use(express.json());
+
+// Palvele staattiset tiedostot public-kansiosta
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Yhdistä SQLite-tietokantaan
 const db = new sqlite3.Database('./database.db', (err) => {
@@ -37,6 +41,48 @@ app.post('/users', (req, res) => {
       return res.status(500).json({ error: err.message });
     }
     res.status(201).json({ id: this.lastID, name, email, age });
+  });
+});
+
+// Lue kaikki käyttäjät (Read)
+app.get('/users', (req, res) => {
+  const query = `SELECT * FROM users`;
+  db.all(query, [], (err, rows) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    res.status(200).json(rows);
+  });
+});
+
+// Päivitä käyttäjä (Update)
+app.put('/users/:id', (req, res) => {
+  const { id } = req.params;
+  const { name, email, age } = req.body;
+  const query = `UPDATE users SET name = ?, email = ?, age = ? WHERE id = ?`;
+  db.run(query, [name, email, age, id], function (err) {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    if (this.changes === 0) {
+      return res.status(404).json({ error: 'Käyttäjää ei löytynyt' });
+    }
+    res.status(200).json({ id, name, email, age });
+  });
+});
+
+// Poista käyttäjä (Delete)
+app.delete('/users/:id', (req, res) => {
+  const { id } = req.params;
+  const query = `DELETE FROM users WHERE id = ?`;
+  db.run(query, id, function (err) {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    if (this.changes === 0) {
+      return res.status(404).json({ error: 'Käyttäjää ei löytynyt' });
+    }
+    res.status(200).json({ message: 'Käyttäjä poistettu' });
   });
 });
 
