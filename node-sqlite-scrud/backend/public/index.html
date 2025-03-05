@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CRUD-operaatiot</title>
 </head>
+
 <body>
     <h1>Käyttäjien hallinta</h1>
 
@@ -15,6 +17,8 @@
         <input type="number" id="age" placeholder="Ikä" required>
         <button type="submit">Luo käyttäjä</button>
     </form>
+
+
 
     <h2>Käyttäjät</h2>
     <ul id="userList"></ul>
@@ -36,7 +40,7 @@
 
     <script>
         // Luodaan uusi käyttäjä
-        document.getElementById('createUserForm').addEventListener('submit', function(event) {
+        document.getElementById('createUserForm').addEventListener('submit', function (event) {
             event.preventDefault();
             const name = document.getElementById('name').value;
             const email = document.getElementById('email').value;
@@ -49,15 +53,25 @@
                 },
                 body: JSON.stringify({ name, email, age })
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.error) {
-                    alert(data.error);
-                } else {
-                    alert('Käyttäjä luotu!');
-                    loadUsers();
-                }
-            });
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert(data.error);
+                    } else {
+                        alert('Käyttäjä luotu!');
+                        loadUsers();
+                    }
+                });
+        });
+
+        // Search all users (Read)
+        app.get('/users', async (req, res) => {
+            try {
+                const users = await User.findAll();
+                res.json(users);
+            } catch (err) {
+                res.status(500).json({ error: err.message });
+            }
         });
 
         // Ladataan kaikki käyttäjät
@@ -76,7 +90,7 @@
         }
 
         // Päivitetään käyttäjä
-        document.getElementById('updateUserForm').addEventListener('submit', function(event) {
+        document.getElementById('updateUserForm').addEventListener('submit', function (event) {
             event.preventDefault();
             const id = document.getElementById('updateId').value;
             const name = document.getElementById('updateName').value;
@@ -90,38 +104,35 @@
                 },
                 body: JSON.stringify({ name, email, age })
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.error) {
-                    alert(data.error);
-                } else {
-                    alert('Käyttäjä päivitetty!');
-                    loadUsers();
-                }
-            });
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert(data.error);
+                    } else {
+                        alert('Käyttäjä päivitetty!');
+                        loadUsers();
+                    }
+                });
         });
 
-        // Poistetaan käyttäjä
-        document.getElementById('deleteUserForm').addEventListener('submit', function(event) {
-            event.preventDefault();
-            const id = document.getElementById('deleteId').value;
-
-            fetch(`/users/${id}`, {
-                method: 'DELETE'
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.error) {
-                    alert(data.error);
-                } else {
-                    alert('Käyttäjä poistettu!');
-                    loadUsers();
+        // Delete user (Delete)
+        app.delete('/users/:id', async (req, res) => {
+            try {
+                const { id } = req.params;
+                const user = await User.findByPk(id);
+                if (!user) {
+                    return res.status(404).json({ error: 'User not found' });
                 }
-            });
+                await user.destroy();
+                res.json({ message: 'User deleted', id });
+            } catch (err) {
+                res.status(500).json({ error: err.message });
+            }
         });
 
         // Ladataan käyttäjät sivun latautuessa
         window.onload = loadUsers;
     </script>
 </body>
+
 </html>

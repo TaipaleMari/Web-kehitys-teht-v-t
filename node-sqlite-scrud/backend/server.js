@@ -1,12 +1,13 @@
 const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path'); // Lisää path-moduuli
-
+const cors = require('cors');
 const app = express();
 const port = 3000;
 
 // Käytetään JSON-middlewarea POST-datan käsittelyyn
 app.use(express.json());
+app.use(cors());
 
 // Palvele staattiset tiedostot public-kansiosta
 app.use(express.static(path.join(__dirname, 'public')));
@@ -44,14 +45,14 @@ app.post('/users', (req, res) => {
   });
 });
 
-// Lue kaikki käyttäjät (Read)
+// Hae kaikki käyttäjät (Read)
 app.get('/users', (req, res) => {
   const query = `SELECT * FROM users`;
   db.all(query, [], (err, rows) => {
     if (err) {
       return res.status(500).json({ error: err.message });
     }
-    res.status(200).json(rows);
+    res.json(rows);
   });
 });
 
